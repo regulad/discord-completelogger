@@ -94,19 +94,19 @@ class SocialLoggerClient(Client):
         """
         Log the joining of a group.
         """
-        self._event_logger.info(f"User {user} joined group {repr(channel)}.")
+        self._event_logger.info(f"User {repr(user)} joined group {repr(channel)}.")
 
     async def on_group_remove(self, channel: GroupChannel, user: User) -> None:
         """
         Log the removal of a user from a group.
         """
-        self._event_logger.info(f"User {user} was removed from group {repr(channel)}.")
+        self._event_logger.info(f"User {repr(user)} was removed from group {repr(channel)}.")
 
     async def on_typing(self, channel: Messageable, user: User | Member, when: datetime) -> None:
         """
         Log a user typing in a channel.
         """
-        self._event_logger.info(f"User {user} is typing in channel {repr(channel)} at {when}.")
+        self._event_logger.info(f"User {repr(user)} is typing in channel {repr(channel)} at {when}.")
 
     # Relationships
 
@@ -126,19 +126,19 @@ class SocialLoggerClient(Client):
         """
         Log the update of a relationship.
         """
-        self._event_logger.info(f"Relationship {before} was updated to {after}.")
+        self._event_logger.info(f"Relationship {repr(before)} was updated to {repr(after)}.")
 
     async def on_friend_suggestion_add(self, user: User) -> None:
         """
         Log the addition of a friend suggestion.
         """
-        self._event_logger.info(f"User {user} was suggested as a friend.")
+        self._event_logger.info(f"User {repr(user)} was suggested as a friend.")
 
     async def on_friend_suggestion_remove(self, user: User) -> None:
         """
         Log the removal of a friend suggestion.
         """
-        self._event_logger.info(f"User {user} was removed as a friend suggestion.")
+        self._event_logger.info(f"User {repr(user)} was removed as a friend suggestion.")
 
     # Calls
 
@@ -154,7 +154,7 @@ class SocialLoggerClient(Client):
         """
         Log the update of a call.
         """
-        self._event_logger.info(f"Call {call} was updated from {before}.")
+        self._event_logger.info(f"Call {call} was updated from {repr(before)}.")
 
     # Guilds (but only the important parts)
 
@@ -194,19 +194,19 @@ class SocialLoggerClient(Client):
         """
         Log the update of a user.
         """
-        self._event_logger.info(f"User {before} was updated to {after}.")
+        self._event_logger.info(f"User {repr(before)} was updated to {repr(after)}.")
 
     async def on_member_ban(self, guild: Guild, user: User | Member) -> None:
         """
         Log the banning of a member.
         """
-        self._event_logger.info(f"Member {user} was banned from guild {repr(guild)}.")
+        self._event_logger.info(f"Member {repr(user)} was banned from guild {repr(guild)}.")
 
     async def on_member_unban(self, guild: Guild, user: User) -> None:
         """
         Log the unbanning of a member.
         """
-        self._event_logger.info(f"Member {user} was unbanned from guild {repr(guild)}.")
+        self._event_logger.info(f"Member {repr(user)} was unbanned from guild {repr(guild)}.")
 
     async def on_presence_update(
         self, before: Member | Relationship, after: Member | Relationship
@@ -214,7 +214,7 @@ class SocialLoggerClient(Client):
         """
         Log the update of a presence.
         """
-        self._event_logger.info(f"Presence {before} was updated to {after}.")
+        self._event_logger.info(f"Presence {repr(before)} was updated to {repr(after)}.")
 
     # Messages
 
@@ -223,7 +223,7 @@ class SocialLoggerClient(Client):
         Log the sending of a message.
         """
         self._event_logger.info(
-            f'Message {repr(message)} was sent with content "{message.content}".'
+            f'Message {repr(message)} was sent with content {message.content!r}.'
         )
 
     async def on_message_edit(self, before: Message, after: Message) -> None:
@@ -231,7 +231,7 @@ class SocialLoggerClient(Client):
         Log the editing of a message.
         """
         self._event_logger.info(
-            f'Message {before} with content "{before.content}" was updated to {after} with content "{after.content}".'
+            f'Message {repr(before)} with content {before.content!r} was updated to {repr(after)} with content {after.content!r}.'
         )
 
     async def on_message_delete(self, message: Message) -> None:
@@ -239,14 +239,14 @@ class SocialLoggerClient(Client):
         Log the deletion of a message.
         """
         self._event_logger.info(
-            f'Message {repr(message)} was deleted with content "{message.content}".'
+            f'Message {repr(message)} was deleted with content {message.content!r}.'
         )
 
     async def on_bulk_message_delete(self, messages: list[Message]) -> None:
         """
         Log the bulk deletion of messages.
         """
-        self._event_logger.info(f"Messages {messages} were bulk deleted.")
+        self._event_logger.info(f"Messages {[repr(message) for message in messages]} were bulk deleted.")
 
     async def on_raw_message_edit(self, payload: RawMessageUpdateEvent) -> None:
         """
@@ -255,7 +255,7 @@ class SocialLoggerClient(Client):
         channel = await self.fetch_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
         self._event_logger.info(
-            f'Message {repr(message)} was updated with content "{message.content}".'
+            f'Message {repr(message)} was updated with content {message.content!r}.'
         )
 
     async def on_raw_message_delete(self, payload: RawMessageDeleteEvent) -> None:
@@ -289,13 +289,13 @@ class SocialLoggerClient(Client):
         """
         Log the removal of a reaction.
         """
-        self._event_logger.info(f"Reaction {reaction} was removed by {user}.")
+        self._event_logger.info(f"Reaction {repr(reaction)} was removed by {repr(user)}.")
 
     async def on_reaction_clear(self, message: Message, reactions: list[Reaction]) -> None:
         """
         Log the clearing of reactions.
         """
-        self._event_logger.info(f"Reactions {reactions} were cleared from message {repr(message)}.")
+        self._event_logger.info(f"Reactions {[repr(reaction) for reaction in reactions]} were cleared from message {repr(message)}.")
 
     async def on_reaction_clear_emoji(self, reaction: Reaction) -> None:
         """
@@ -331,7 +331,7 @@ class SocialLoggerClient(Client):
         """
         Log the update of a voice state.
         """
-        self._event_logger.info(f"Voice state {before} was updated to {after} for {repr(member)}.")
+        self._event_logger.info(f"Voice state {repr(before)} was updated to {repr(after)} for {repr(member)}.")
 
 
 __all__ = ("SocialLoggerClient",)

@@ -24,10 +24,11 @@ from binascii import Error
 from logging import INFO
 from logging import Formatter
 from logging import getLogger
-from logging.handlers import QueueHandler
+from logging.handlers import QueueHandler, QueueListener
 from logging.handlers import RotatingFileHandler
 from os import environ
 from pathlib import Path
+from queue import Queue
 
 import typer
 from discord import Status
@@ -41,6 +42,13 @@ from .client import SocialLoggerClient
 cli = typer.Typer()
 
 
+def try_force_decode_jwt(jwt_segment: str) -> str:
+    try:
+        return b64decode(jwt_segment).decode("utf-8")
+    except Error:
+        # don't eat the recursion error, look for it
+        return try_force_decode_jwt(jwt_segment + "=")
+
 @cli.command()
 def main() -> None:
     load_dotenv()
@@ -52,6 +60,7 @@ def main() -> None:
 
     root_logger = getLogger()
     root_logger.setLevel(INFO)
+
     rich_handler = RichHandler()
     file_handler = RotatingFileHandler(
         logs_dir / "complogger.log", maxBytes=1000000, backupCount=5, encoding="utf-8"
@@ -59,23 +68,23 @@ def main() -> None:
     timestamp_formatter = Formatter(fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     file_handler.setFormatter(timestamp_formatter)
 
-    root_logger.addHandler(rich_handler)
-    root_logger.addHandler(file_handler)
+    queue = Queue()
+    queue_listener = QueueListener(queue, rich_handler, file_handler)
 
-    token = environ["DISCORD_TOKEN"]
-    try:
-        user_id = str(int(b64decode(token.split(".")[0]).decode("utf-8")))
-    except Error:
+    queue_listener.start()
+    root_logger.addHandler(QueueHandler(queue))  # avoid blocking the main thread w/ the asyncio loop
+
+    tokens = environ["DISCORD_TOKEN"]
+    for token in tokens.split(","):  # currently unused, have to do the async code for each
+        user_id = try_force_decode_jwt(token.split(".")[0])
+
+        client_logger = getLogger(user_id)
+        client = SocialLoggerClient(client_logger, status=Status.offline)
+
         try:
-            user_id = str(int(b64decode(token.split(".")[0] + "=").decode("utf-8")))
-        except Error:
-            try:
-                user_id = str(int(b64decode(token.split(".")[0] + "==").decode("utf-8")))
-            except Error:
-                user_id = "unknown"
-    client_logger = getLogger(user_id)
-    client = SocialLoggerClient(client_logger, status=Status.offline)
-    client.run(token, log_handler=None)
+            client.run(token, log_handler=None)
+        finally:
+            queue_listener.stop()
 
 
 if __name__ == "__main__":  # pragma: no cover
