@@ -18,13 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-import json
 from base64 import b64decode
 from binascii import Error
 from logging import INFO
 from logging import Formatter
 from logging import getLogger
-from logging.handlers import QueueHandler, QueueListener
+from logging.handlers import QueueHandler
+from logging.handlers import QueueListener
 from logging.handlers import RotatingFileHandler
 from os import environ
 from pathlib import Path
@@ -35,7 +35,6 @@ from discord import Status
 from dotenv import load_dotenv
 from rich.logging import RichHandler
 
-from ._assets import RESOURCES
 from .client import SocialLoggerClient
 
 
@@ -48,6 +47,7 @@ def try_force_decode_jwt(jwt_segment: str) -> str:
     except Error:
         # don't eat the recursion error, look for it
         return try_force_decode_jwt(jwt_segment + "=")
+
 
 @cli.command()
 def main() -> None:
@@ -72,7 +72,9 @@ def main() -> None:
     queue_listener = QueueListener(queue, rich_handler, file_handler)
 
     queue_listener.start()
-    root_logger.addHandler(QueueHandler(queue))  # avoid blocking the main thread w/ the asyncio loop
+    root_logger.addHandler(
+        QueueHandler(queue)
+    )  # avoid blocking the main thread w/ the asyncio loop
 
     tokens = environ["DISCORD_TOKEN"]
     for token in tokens.split(","):  # currently unused, have to do the async code for each

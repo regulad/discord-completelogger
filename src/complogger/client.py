@@ -1,3 +1,23 @@
+"""Logging client - Log deleted messages.
+
+Copyright (C) 2024  Parker Wahle
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""  # noqa: E501, B950
+
+from __future__ import annotations
+
 from datetime import datetime
 from logging import Logger
 
@@ -27,6 +47,12 @@ class SocialLoggerClient(Client):
     """
 
     def __init__(self, logger: Logger, **kwargs) -> None:
+        """
+        Initialize the SocialLoggerClient.
+
+        :param logger: The logger to use for logging events. A QueueListener is recommended to avoid blocking.
+        :param kwargs: Any additional kwargs for the Discord Client.
+        """
         super().__init__(**kwargs)
         self._event_logger = logger
 
@@ -106,7 +132,9 @@ class SocialLoggerClient(Client):
         """
         Log a user typing in a channel.
         """
-        self._event_logger.info(f"User {repr(user)} is typing in channel {repr(channel)} at {when}.")
+        self._event_logger.info(
+            f"User {repr(user)} is typing in channel {repr(channel)} at {when}."
+        )
 
     # Relationships
 
@@ -223,7 +251,7 @@ class SocialLoggerClient(Client):
         Log the sending of a message.
         """
         self._event_logger.info(
-            f'Message {repr(message)} was sent with content {message.content!r}.'
+            f"Message {repr(message)} was sent with content {message.content!r}."
         )
 
     async def on_message_edit(self, before: Message, after: Message) -> None:
@@ -231,7 +259,7 @@ class SocialLoggerClient(Client):
         Log the editing of a message.
         """
         self._event_logger.info(
-            f'Message {repr(before)} with content {before.content!r} was updated to {repr(after)} with content {after.content!r}.'
+            f"Message {repr(before)} with content {before.content!r} was updated to {repr(after)} with content {after.content!r}."
         )
 
     async def on_message_delete(self, message: Message) -> None:
@@ -239,14 +267,16 @@ class SocialLoggerClient(Client):
         Log the deletion of a message.
         """
         self._event_logger.info(
-            f'Message {repr(message)} was deleted with content {message.content!r}.'
+            f"Message {repr(message)} was deleted with content {message.content!r}."
         )
 
     async def on_bulk_message_delete(self, messages: list[Message]) -> None:
         """
         Log the bulk deletion of messages.
         """
-        self._event_logger.info(f"Messages {[repr(message) for message in messages]} were bulk deleted.")
+        self._event_logger.info(
+            f"Messages {[repr(message) for message in messages]} were bulk deleted."
+        )
 
     async def on_raw_message_edit(self, payload: RawMessageUpdateEvent) -> None:
         """
@@ -255,7 +285,7 @@ class SocialLoggerClient(Client):
         channel = await self.fetch_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
         self._event_logger.info(
-            f'Message {repr(message)} was updated with content {message.content!r}.'
+            f"Message {repr(message)} was updated with content {message.content!r}."
         )
 
     async def on_raw_message_delete(self, payload: RawMessageDeleteEvent) -> None:
@@ -295,7 +325,9 @@ class SocialLoggerClient(Client):
         """
         Log the clearing of reactions.
         """
-        self._event_logger.info(f"Reactions {[repr(reaction) for reaction in reactions]} were cleared from message {repr(message)}.")
+        self._event_logger.info(
+            f"Reactions {[repr(reaction) for reaction in reactions]} were cleared from message {repr(message)}."
+        )
 
     async def on_reaction_clear_emoji(self, reaction: Reaction) -> None:
         """
@@ -331,7 +363,9 @@ class SocialLoggerClient(Client):
         """
         Log the update of a voice state.
         """
-        self._event_logger.info(f"Voice state {repr(before)} was updated to {repr(after)} for {repr(member)}.")
+        self._event_logger.info(
+            f"Voice state {repr(before)} was updated to {repr(after)} for {repr(member)}."
+        )
 
 
 __all__ = ("SocialLoggerClient",)
