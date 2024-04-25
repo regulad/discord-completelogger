@@ -23,6 +23,8 @@ python = "^3.11,<3.13"  # 3.13 is planned to make sweeping changes
 typer = {version = "^0.9.0", extras = ["all"]}
 typing-extensions = "^4.7.1"
 importlib-metadata = "^6.8.0"
+discord-py-self = {git = "https://github.com/dolfies/discord.py-self.git", extras = ["voice"]}
+python-dotenv = "^1.0.1"
 
 [tool.poetry.dev-dependencies]
 Pygments = ">=2.10.0"

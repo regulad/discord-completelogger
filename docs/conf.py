@@ -1,4 +1,5 @@
 """Sphinx configuration."""
+
 project = "CompleteLogger"
 author = "Parker Wahle"
 copyright = "2024, Parker Wahle"

@@ -15,13 +15,27 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """  # noqa: E501, B950
+
 from __future__ import annotations
 
 import json
+from base64 import b64decode
+from binascii import Error
+from logging import INFO
+from logging import Formatter
+from logging import getLogger
+from logging.handlers import QueueHandler
+from logging.handlers import RotatingFileHandler
+from os import environ
+from pathlib import Path
 
 import typer
+from discord import Status
+from dotenv import load_dotenv
+from rich.logging import RichHandler
 
 from ._assets import RESOURCES
+from .client import SocialLoggerClient
 
 
 cli = typer.Typer()
@@ -29,11 +43,39 @@ cli = typer.Typer()
 
 @cli.command()
 def main() -> None:
-    data = RESOURCES / "data.json"
-    with data.open() as json_fp:
-        parsed = json.load(json_fp)
-    status = parsed["status"]
-    print(typer.style(status, fg=typer.colors.GREEN, bold=True))
+    load_dotenv()
+
+    logs_dir = Path("logs")
+
+    if not logs_dir.exists():
+        logs_dir.mkdir()
+
+    root_logger = getLogger()
+    root_logger.setLevel(INFO)
+    rich_handler = RichHandler()
+    file_handler = RotatingFileHandler(
+        logs_dir / "complogger.log", maxBytes=1000000, backupCount=5, encoding="utf-8"
+    )
+    timestamp_formatter = Formatter(fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    file_handler.setFormatter(timestamp_formatter)
+
+    root_logger.addHandler(rich_handler)
+    root_logger.addHandler(file_handler)
+
+    token = environ["DISCORD_TOKEN"]
+    try:
+        user_id = str(int(b64decode(token.split(".")[0]).decode("utf-8")))
+    except Error:
+        try:
+            user_id = str(int(b64decode(token.split(".")[0] + "=").decode("utf-8")))
+        except Error:
+            try:
+                user_id = str(int(b64decode(token.split(".")[0] + "==").decode("utf-8")))
+            except Error:
+                user_id = "unknown"
+    client_logger = getLogger(user_id)
+    client = SocialLoggerClient(client_logger, status=Status.offline)
+    client.run(token, log_handler=None)
 
 
 if __name__ == "__main__":  # pragma: no cover
